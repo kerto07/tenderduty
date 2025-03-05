@@ -123,6 +123,17 @@ func (cc *ChainConfig) WsRun() {
 						td.statsChan <- cc.mkUpdate(metricLastBlockSeconds, time.Since(cc.lastBlockTime).Seconds(), "")
 					}
 					cc.lastBlockTime = time.Now()
+					if cc.lastBlockAlarm {
+						// remove existing alert
+						td.alert(
+							cc.name,
+							fmt.Sprintf("stalled: have not seen a new block on %s in %d minutes", cc.ChainId, cc.Alerts.Stalled),
+							"info",
+							true,
+							&cc.valInfo.Valcons,
+						)
+						alarms.clearNoBlocks(cc.name)
+					}
 					cc.lastBlockAlarm = false
 					info := getAlarms(cc.name)
 					cc.blocksResults = append([]int{int(signState)}, cc.blocksResults[:len(cc.blocksResults)-1]...)
